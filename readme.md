@@ -2,7 +2,7 @@
 
 ## Steps to use
 
-- Run `docker-compose up --build`
+- Run `docker-compose up --build -d`
 - Run `docker images`
 - Get the image names from the previous command
 - Create AWS ECR repositories with the image names
