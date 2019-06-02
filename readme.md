@@ -14,6 +14,12 @@
 - Visit the Public IP and you should see a `Hello World` page
 - Navigate to `/phpinfo.php` and you will get the PHP Info
 
+## Deployments
+
+- Run `./build.sh`
+- Run `./deploy.sh FAMILY_NAME` (the image version will default to the latest commit id)
+- A new task definition will be created in ECS that you can use to run tasks or update services
+
 ## Gotchas
 - Docker-compose & Fargate use different networking so we need to replace the hostname in the nginx config when building
 (check the `build.sh` script)

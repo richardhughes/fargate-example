@@ -4,6 +4,10 @@ PROJECT_NAME=$1
 
 REPO_URL=$2
 
+VERSION=$(git log --pretty=format:'%h' -n 1)
+
+$(aws ecr get-login --no-include-email)
+
 ## We need to change this because of the way fargate works. Fargate uses localhost to communicate with each container
 ## whereas docker-compose needs the container name as the hostname
 
@@ -16,8 +20,9 @@ IMAGE_IDS=$(docker images | grep -i ${PROJECT_NAME} | awk '{print $3}')
 for imageId in ${IMAGE_IDS}; do
     IMAGE_NAME=$(docker images | grep -i ${imageId} | awk '{print $1}')
 
-    docker tag ${imageId} ${REPO_URL}/${IMAGE_NAME}:
-    docker push ${REPO_URL}/${IMAGE_NAME}
+    docker tag ${imageId} ${REPO_URL}/${IMAGE_NAME}:${VERSION}
+
+    docker push ${REPO_URL}/${IMAGE_NAME}:${VERSION}
 
     docker rmi --force ${imageId}
 done
