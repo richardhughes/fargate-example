@@ -17,8 +17,9 @@
 ## Deployments
 
 - Run `./build.sh`
-- Run `./deploy.sh FAMILY_NAME` (the image version will default to the latest commit id)
-- A new task definition will be created in ECS that you can use to run tasks or update services
+- Run `./deploy.sh FAMILY_NAME CLUSTER SERVICE` (the image version will default to the latest commit id)
+- A new task definition will be created in ECS
+- The service you specify will be updated
 
 ## Gotchas
 - Docker-compose & Fargate use different networking so we need to replace the hostname in the nginx config when building
