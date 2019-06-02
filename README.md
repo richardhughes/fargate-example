@@ -9,15 +9,15 @@
 - Get the project prefix (`PROJECT_NAME`) from the image name (everything before the underscore `_`)
 - Create a cluster 
 - Create a Task Definition with the ECR images (by default this uses the latest), check out the task-definition.json for an example
-- Run `./build.sh PROJECT_NAME REPO_URL`
+- Run `./scripts/build.sh PROJECT_NAME REPO_URL`
 - Start a new Task in your cluster
 - Visit the Public IP and you should see a `Hello World` page
 - Navigate to `/phpinfo.php` and you will get the PHP Info
 
 ## Deployments
 
-- Run `./build.sh`
-- Run `./deploy.sh FAMILY_NAME CLUSTER SERVICE` (the image version will default to the latest commit id)
+- Run `./scripts/build.sh`
+- Run `./scripts/deploy.sh FAMILY_NAME CLUSTER SERVICE` (the image version will default to the latest commit id)
 - A new task definition will be created in ECS
 - The service you specify will be updated
 
