@@ -1,4 +1,6 @@
-<?php
+<?php require_once '../vendor/autoload.php'; ?>
 
-echo "Hello Fargate World!";
+<h1>Example Fargate Application</h1>
+
+<?= \SebastianBergmann\Timer\Timer::resourceUsage(); ?>
 

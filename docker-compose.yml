@@ -6,3 +6,5 @@ services:
       - "8090:80"
   php:
     build: .
+    volumes:
+      - .:/var/www/html
