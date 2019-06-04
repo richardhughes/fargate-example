@@ -1,25 +1,30 @@
 #!/bin/bash
 
-FAMILY_NAME=$1
+CLUSTER=$1
 
-CLUSTER=$2
+SERVICE=$2
 
-SERVICE=$3
+LAUNCH_TYPE=$3
 
+## Using the same version as the build plan
 VERSION=$(git log --pretty=format:'%h' -n 1)
 
-OLD_TASK_DEF=$(aws ecs describe-task-definition --task-definition ${FAMILY_NAME} --output json)
+## If the build.yml file doesn't exist then the ECR hasn't been updated & we should stop the deployment
+if [[ ! -f 'docker-compose.build.yml' ]]
+then
+    echo "Please run the build.sh command before trying to deploy the container";
+    exit 1;
+fi;
 
-NEW_TASK_DEF=$(echo "$OLD_TASK_DEF" | sed -e "s|\(\"image\": *\".*:\)\(.*\)\"|\1${VERSION}\"|g")
+TASK_DEFINITION=$(ecs-cli compose --file docker-compose.build.yml --ecs-params ecs-params.yml create --launch-type ${LAUNCH_TYPE})
 
-FINAL_TASK=$(echo $NEW_TASK_DEF | jq '.taskDefinition|{family: .family, volumes: .volumes, containerDefinitions: .containerDefinitions, taskRoleArn: .taskRoleArn, executionRoleArn: .executionRoleArn, networkMode: .networkMode, placementConstraints: .placementConstraints, requiresCompatibilities: .requiresCompatibilities, cpu: .cpu, memory: .memory}')
-
-UPDATED_TASK=$(aws ecs register-task-definition --family ${FAMILY_NAME} --cli-input-json "${FINAL_TASK}")
+## Get the family and version id for the newly created Task Definition
+TASK_DEFINITION=$(echo ${TASK_DEFINITION} | grep -P 'TaskDefinition=("?)(.+)(")$' -o | sed -e 's\"\\g' | sed -e 's\TaskDefinition=\\g' )
 
 echo "Created a new Task Definition for Version: ${VERSION}"
 
-REVISION=$(echo $UPDATED_TASK | jq '.taskDefinition.revision')
+## Update the service to use the new task definition - If containers are running then this will start up another task
+## and kill the older tasks
+aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" --task-definition "${TASK_DEFINITION}" > /dev/null
 
-aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" --task-definition "$FAMILY_NAME":"$REVISION" > /dev/null
-
-echo "Updated the Service to use latest Task Definition $FAMILY_NAME:$REVISION"
+echo "Updated the Service to use latest Task Definition ${TASK_DEFINITION}"
