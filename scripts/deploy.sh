@@ -16,6 +16,7 @@ then
     exit 1;
 fi;
 
+## Create a new task definition based on the docker-compose build file. If one doesn't exist then it'll create us a new one.
 TASK_DEFINITION=$(ecs-cli compose --file docker-compose.build.yml --ecs-params ecs-params.yml create --launch-type ${LAUNCH_TYPE})
 
 ## Get the family and version id for the newly created Task Definition
