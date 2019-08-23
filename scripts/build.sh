@@ -4,6 +4,10 @@ PROJECT_NAME=$1
 
 REPO_URL=$2
 
+## Completely optional, this is just to force the image name to be consistent with your ECR repo
+## Only add this variable if you 
+CUSTOM_IMAGE_NAME=$3
+
 ## Grab the commit hash from the latest commit so we can version the ECR image with this
 VERSION=$(git log --pretty=format:'%h' -n 1)
 
@@ -30,19 +34,28 @@ IMAGE_IDS=$(docker images | grep -i ${PROJECT_NAME} | awk '{print $3}')
 
 for imageId in ${IMAGE_IDS}; do
 
-    IMAGE_NAME=$(docker images | grep -i ${imageId} | awk '{print $1}')
-
+    ## Check to see if the custom image name has been passed via the command line, if it has then we'll use that instead of
+    ## docker image name. The custom image name is to conform with your ECR naming conventions
+    if [ -z "$CUSTOM_IMAGE_NAME" ]
+    then
+         IMAGE_NAME=$(docker images | grep -i ${imageId} | awk '{print $1}')
+         IMAGE_URL="${REPO_URL}/${IMAGE_NAME}:${VERSION}"
+    else
+         IMAGE_NAME=$CUSTOM_IMAGE_NAME
+         IMAGE_URL="${REPO_URL}/${CUSTOM_IMAGE_NAME}:${VERSION}"
+    fi
+    
     ## Need to build up the docker-compose.build file so we can use it in the deploy to link the correct images in the TD
     cat >> ./docker-compose.build.yml <<EOL
     ${IMAGE_NAME}:
-        image: ${REPO_URL}/${IMAGE_NAME}:${VERSION}
+        image: ${IMAGE_URL}
 EOL
 
     ## Tag the docker Image ID as the ECR URL & Version
-    docker tag ${imageId} ${REPO_URL}/${IMAGE_NAME}:${VERSION}
+    docker tag ${imageId} ${IMAGE_URL}
 
     ## Push the image to the AWS ECR registry with the specific version id from the commit hash
-    docker push ${REPO_URL}/${IMAGE_NAME}:${VERSION}
+    docker push ${IMAGE_URL}
 
     ## Clean up the image so we don't have any images dangling
     docker rmi --force ${imageId}
